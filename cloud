@@ -1,0 +1,34 @@
+1. aws resource 삭제 후에도 비용이 청구되는 경우
+- 인스턴스를 삭제했지만 인스터스가 사용하던 EBS가 삭제되지 않은 경우
+- AMI 생성으로 인한 S3 비용 및 EBS 스냅샷 볼륨 비용
+- EIP가 release 되지 않은 경우
+- RDS의 스냅샷이 존재하는 경우 등
+
+2. dedicated host
+- dedicated host 1대에 여러 instance type 혼용 불가능
+- dedicated instance 사용 시 BYOL 불가능
+
+3. SecurityGroups VS NACL
+- SecurityGroups
+ > 인스턴스 레벨
+ > 허용 규칙만 지원
+ > 상태저장(stateful) - 규칙에 관계없이 반환트래픽 자동 허용
+ > 트래픽 허용 여부 결정 전 모든 규칙 평가
+ > 인스턴스 시작 시 보안그룹을 지정하거나, 나중에 인스턴스에 연결하는 경우에만 적용
+ > 인스턴스의 네트워크인터페이스와 연결
+ 
+- NACL
+ > 서브넷 레벨
+ > 허용 및 거부 규칙 지원
+ > 상태 비저장(stateless) - 반환 트래픽(outbount)이 명시적으로 지정되어야 함
+ > 트래픽 허용 여부 결정 시 규칙 번호순으로 처리
+ > 연결된 서브넷의 모든 인스턴스에 적용
+ 
+4. Cloudwatch를 통해 모니터링 불가한 항목
+ - 디스크 usage
+ - 서버 메모리
+
+5. ALB-Backend 트러블 슈팅
+- Backend 서버의 SecurityGroups이 ALB로부터 들어오는 트래픽을 허용하나?
+- healthcheck 설정이 정상인가?
+- TargetGroups의 포트가 올바른가? 등
