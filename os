@@ -35,3 +35,5 @@
  > Administrator 그룹에 있더라도 "관리자 권한으로 실행"을 통해 상승시켜야 하는 작업이 있음
  > Windows는 각 계정마다 할당된 SID로 구분되며 유저 삭제 후, 동일한 이름의 계정을 만들더라도 다른 SID가 부여되어 이전과 같은 권한을 사용할 수 없음
  
+- TCP wrapper
+ > https://yangnoon.tistory.com/37
