@@ -1,0 +1,285 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "CidrBlock": {
+      "Type": "String",
+      "Description": "Specify the CIDR block for this VPC",
+      "MaxLength": 18,
+      "MinLength": 10,
+      "ConstraintDescription": "A Single CIDR block, e.g. 10.44.0.0/16"
+    },
+    "Project": {
+      "Type": "String",
+      "Description": "Specify the Project",
+      "AllowedValues": [
+        "PROJECT"
+      ]
+    },
+    "Affiliate": {
+      "Type": "String",
+      "Description": "Specify the Affiliate",
+      "AllowedValues": [
+        "AFF1",
+        "AFF2"
+      ]
+    },
+    "Stage": {
+      "Type": "String",
+      "Description": "Specify the Stage",
+      "AllowedValues": [
+        "DEV",
+        "PRD"
+      ]
+    },
+    "ServiceFamily": {
+      "Type": "String",
+      "Description": "Specify the Service Family",
+      "AllowedValues": [
+        "FRONT",
+        "BACK",
+        "API"
+      ]
+    }
+  },
+  "Resources": {
+    "VPC": {
+      "Properties": {
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true,
+        "CidrBlock": {
+          "Ref": "CidrBlock"
+        },
+        "Tags": [
+          {
+            "Key": "ServiceFamily",
+            "Value": {
+              "Ref": "ServiceFamily"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "Affiliate",
+            "Value": {
+              "Ref": "Affiliate"
+            }
+          },
+          {
+            "Key": "Stage",
+            "Value": {
+              "Ref": "Stage"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "Project"
+                  },
+                  {
+                    "Ref": "Affiliate"
+                  },
+                  {
+                    "Ref": "Stage"
+                  },
+                  {
+                    "Ref": "ServiceFamily"
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "Type": "AWS::EC2::VPC"
+    },
+    "InternetGateway": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "ServiceFamily",
+            "Value": {
+              "Ref": "ServiceFamily"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "Affiliate",
+            "Value": {
+              "Ref": "Affiliate"
+            }
+          },
+          {
+            "Key": "Stage",
+            "Value": {
+              "Ref": "Stage"
+            }
+          }
+        ]
+      },
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "IGAttachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PublicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PublicRouteEntries": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      },
+      "DependsOn": "PublicRouteTable"
+    },
+    "PrivateRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "VpcId": {
+      "Value": {
+        "Ref": "VPC"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "Project"
+              },
+              {
+                "Ref": "Affiliate"
+              },
+              {
+                "Ref": "Stage"
+              },
+              {
+                "Ref": "ServiceFamily"
+              },
+              "VpcId"
+            ]
+          ]
+        }
+      }
+    },
+    "InternetGatewayId": {
+      "Value": {
+        "Ref": "InternetGateway"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "Project"
+              },
+              {
+                "Ref": "Affiliate"
+              },
+              {
+                "Ref": "Stage"
+              },
+              {
+                "Ref": "ServiceFamily"
+              },
+              "InternetGatewayId"
+            ]
+          ]
+        }
+      }
+    },
+    "PublicRouteTableId": {
+      "Value": {
+        "Ref": "PublicRouteTable"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "Project"
+              },
+              {
+                "Ref": "Affiliate"
+              },
+              {
+                "Ref": "Stage"
+              },
+              {
+                "Ref": "ServiceFamily"
+              },
+              "PublicRouteTableId"
+            ]
+          ]
+        }
+      }
+    },
+    "PrivateRouteTableId": {
+      "Value": {
+        "Ref": "PrivateRouteTable"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "Project"
+              },
+              {
+                "Ref": "Affiliate"
+              },
+              {
+                "Ref": "Stage"
+              },
+              {
+                "Ref": "ServiceFamily"
+              },
+              "PrivateRouteTableId"
+            ]
+          ]
+        }
+      }
+    }
+  }
+}
