@@ -85,3 +85,12 @@ elasticCache 제약사항 검토(메모리사이즈별비용등)
 Oracle RDS의지원사이즈: 최대64TBOracle license에대한확보방안검토필요
 read/write확장/분리는 별도read replica 구성검토(RDSmariadb/오로라DB인경우제약/검토사항) 솔루션 적용으로 인한 응용단 변경 분량 검토필요-> Procedure, Pro*C 등의 OS단에 적용된 스크립트 기반의 업무에대한 적용방안 검토포함
 별도read replica 구성을 통한 확장성 검토
+
+- 점검
+1) 점검 대상 : L4, NAS, DB 스토리지
+2)
+점검 방법 :
+• L4 : 네트워크 대역폭 등의 자원 병목 점검
+• NAS : 이미지 파일 영역의 디스크 처리속 도 , Disk 분산 여부등의 자원 병목 점검
+• DB : SQL Plan 의 특이사항은 발견되지 않는다는 사실에 착안하여 DB 스토리지 처리속도 , Disk 분산 여부등의 자원
+병목 점검
