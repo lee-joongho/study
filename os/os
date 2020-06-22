@@ -94,3 +94,13 @@ read/write확장/분리는 별도read replica 구성검토(RDSmariadb/오로라D
 • NAS : 이미지 파일 영역의 디스크 처리속 도 , Disk 분산 여부등의 자원 병목 점검
 • DB : SQL Plan 의 특이사항은 발견되지 않는다는 사실에 착안하여 DB 스토리지 처리속도 , Disk 분산 여부등의 자원
 병목 점검
+
+- 원인 분석
+(1) cpu 사용율 측면에서 보면 usr + sys 대비 wio 비율이 매우 높음
+(2) 현재 구성의 pv에서 처리가능한 iops성능 (100iops) 이상의 요청(peak시 1787)이 들어오고 있음
+(3) 디스크 busy측면에서 보면 전체 디스크 대비 특정 디스크의 busy%가 편중 되어 있으며, 50% 이상~ 90% 정도로 매우 IO부하가 심함
+(4) 업무 특성은 DB 데이터를 축적하는 패턴이며 실제로 부하가 심한 pv는 DBMS Data및 index영역임
+-> 현재의 구성에서 처리 가능한 Level 대비 과도한 IO 처리를 요청하고 있어 디스크는 매우 바쁜 상황이며, 이로 인해 cpu는 일을 하고 싶어도 IO를 기다리느라 일을 제대로 처리하지 못하는 상황이라 응답시간이 저하되고 있는것이다
+개선방안:
+- pv02와 mapping된 block device를 Premium Type으로 교체 구성
+- Premium Type으로 교체해도 1000 iops 가 max라서 peak시 iops처리 시 지연 발생 가능하므로 복수 개의 device를 할당하여 Striping하는 것으로 재구성한다
