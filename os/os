@@ -37,3 +37,51 @@
  
 - TCP wrapper
  > https://yangnoon.tistory.com/37
+
+- 장애 테스트
+테스트항목/요소
+테스트방법
+서비스(업무) 영향도
+
+NameNode1대장애
+(1) HDFSWrite/Read 정상확인
+(2) NameNode1대장애발생
+(3) HDFSWrite/Read 정상확인
+-NameNode는A-S이중화이기때문에영향이없음
+
+DataNode1대장애
+(1) HDFSWrite/Read 정상확인
+(2) DataNode1대장애발생
+(3) HDFSWrite/Read 정상확인
+-DataNode는다중화구성이며, 3way 복제이기때문에영향이없음
+
+DataNode2대장애
+(1) HDFSWrite/Read 정상확인
+(2) DataNode2대장애발생
+(3) HDFSWrite/Read 정상확인
+-DataNode는다중화구성이며, 3way 복제이기때문에영향이없음
+
+DataNode디스크1개장애
+(1) HDFSWrite/Read 정상확인
+(2) DataNode디스크1개장애발생
+(3) HDFSWrite/Read 정상확인
+-DataNode1개서버안에는디스크다중화구성이며, 3way 복제이기때문에영향이없음
+
+
+- AWS 이관
+AWSIaaS 기반구성EC2 기반에서Managed Service를제외한솔루션(설치형)으로 구성하여 요구사항 대응방안 마련하고 대응방안의 제약/검토사항을기술
+1)Select (방안) redis또는memcached,* CQRS 적용도맞는것으로함(제약/검토사항) cache 구성 변경에 따른 응용 변경 데이터 변경 여부 및 이에 따른 동기화 방안 공통 데이터처리를 위한 응용 변경 여부
+2)History Logging (방안) nosql계열DB (cassandra, mongodb등)(제약/검토사항) Nosql로 변경에따른 응용변경 NoSQLDB의 이중화방안
+3)확장성/가용성(방안) oracle 또는 mariaDB 등의 이중화구성(제약/검토사항) 문제에서Oracle로 명시하고있음 MySQL / MariaDB 적용시 이에따른query 전환비용/일정포함 필요 Oracle 적용시 라이선스 확보/이중화 방안 등 검토필요(Data Guard / OGG 등) 성능에 대한 사전검토필요 (디스크type 및서버type 등)
+
+AWS PaaS(ManagedService)기반구성
+솔루션 선정하여 요구사항 대응방안 마련하고 대응 답안의 제약/검토사항을기술
+1) Select (방안) elasticCache사용(제약/검토사항) 데이터정합성보장방안(Oracle to elasticcache배치구성방안에대한추가검토)elasticCache구성방안(Cluster vs non-cluster mode)cache 구성변경에 따른 응용변경
+elasticCache 제약사항 검토(메모리사이즈별비용등)
+2) History Logging(방안) dynamoDB사용(제약/검토사항) 데이터 성능보장 방안(data skew)
+비정형 데이터 분석방안 검토 필요(ex powerBI같은..) Nosql로 변경에 따른 응용변경 DynamoDB 제약사항 검토 읽기/쓰기 제약 및 비용 인덱스수, 키크기등(AWS 문서참조)
+3)확장성/가용성(방안) RDS (oracle or mariadbor오로라DB)
+(RDSoracle인경우제약/검토사항)
+Oracle RDS의지원사이즈: 최대64TBOracle license에대한확보방안검토필요
+read/write확장/분리는 별도read replica 구성검토(RDSmariadb/오로라DB인경우제약/검토사항) 솔루션 적용으로 인한 응용단 변경 분량 검토필요-> Procedure, Pro*C 등의 OS단에 적용된 스크립트 기반의 업무에대한 적용방안 검토포함
+별도read replica 구성을 통한 확장성 검토
