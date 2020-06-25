@@ -1,0 +1,64 @@
+collections.Counter()
+
+Ex) 두 개의 리스트를 비교하여 빠진 요소 찾기
+
+* 컨테이너에 동일한 값의 자료가 몇 개인지 파악하는데 사용하는 객체
+* collections.Counter()의 결과값은 딕셔너리
+* 입력값 - list, dictionary, value=number, string
+
+1. list - 요소 개수 dictionary로 반환
+
+import collections
+lst = ['aa', 'cc', 'dd', 'aa', 'bb', 'ee']
+print(collections.Counter(lst))
+'''
+결과
+Counter({'aa': 2, 'cc': 1, 'dd': 1, 'bb': 1, 'ee': 1})
+'''
+
+
+2. dictionary - 요소의 갯수가 많은 것 부터 출력
+
+print(collections.Counter({'가': 3, '나': 2, '다': 4}))
+'''
+결과
+Counter({'다': 4, '가': 3, '나': 2})
+'''
+
+
+3. 값=개수 - collections.Counter(a=2, b=3, c=2)는 ['a', 'a', 'b', 'b', 'b', 'c', 'c']와 같음
+
+c = collections.Counter(a=2, b=3, c=2)
+print(collections.Counter(c))
+print(sorted(c.elements()))
+'''
+결과
+Counter({'b': 3, 'c': 2, 'a': 2})
+['a', 'a', 'b', 'b', 'b', 'c', 'c']
+'''
+
+
+# 4. string - 문자열 입력 시 {문자 : 개수} 딕셔너리 반환
+
+container = collections.Counter()
+container.update("aabcdeffgg")
+print(container)
+'''
+결과
+Counter({'f': 2, 'g': 2, 'a': 2, 'e': 1, 'b': 1, 'c': 1, 'd': # 1})
+''' 
+
+for k,v in container.items(): 
+print(k,':',v) 
+''' 
+결과 
+f : 2 
+e : 1 
+b : 1 
+g : 2 
+c : 1 
+a : 2 
+d : 1
+'''
+
+
