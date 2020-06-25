@@ -38,6 +38,96 @@
 - TCP wrapper
  > https://yangnoon.tistory.com/37
 
+<<<<<<< HEAD
 - RAID
  > https://raisonde.tistory.com/entry/RAID0%EB%B6%80%ED%84%B0-RAID7%EA%B9%8C%EC%A7%80-%EB%AA%A8%EB%93%A0-RAID%EA%B5%AC%EC%84%B1%EC%9D%84-%EC%95%8C%EC%95%84%EB%B3%B4%EC%9E%90
  
+=======
+- 장애 테스트
+테스트항목/요소
+테스트방법
+서비스(업무) 영향도
+
+NameNode1대장애
+(1) HDFSWrite/Read 정상확인
+(2) NameNode1대장애발생
+(3) HDFSWrite/Read 정상확인
+-NameNode는A-S이중화이기때문에영향이없음
+
+DataNode1대장애
+(1) HDFSWrite/Read 정상확인
+(2) DataNode1대장애발생
+(3) HDFSWrite/Read 정상확인
+-DataNode는다중화구성이며, 3way 복제이기때문에영향이없음
+
+DataNode2대장애
+(1) HDFSWrite/Read 정상확인
+(2) DataNode2대장애발생
+(3) HDFSWrite/Read 정상확인
+-DataNode는다중화구성이며, 3way 복제이기때문에영향이없음
+
+DataNode디스크1개장애
+(1) HDFSWrite/Read 정상확인
+(2) DataNode디스크1개장애발생
+(3) HDFSWrite/Read 정상확인
+-DataNode1개서버안에는디스크다중화구성이며, 3way 복제이기때문에영향이없음
+
+
+- AWS 이관
+AWSIaaS 기반구성EC2 기반에서Managed Service를제외한솔루션(설치형)으로 구성하여 요구사항 대응방안 마련하고 대응방안의 제약/검토사항을기술
+1)Select (방안) redis또는memcached,* CQRS 적용도맞는것으로함(제약/검토사항) cache 구성 변경에 따른 응용 변경 데이터 변경 여부 및 이에 따른 동기화 방안 공통 데이터처리를 위한 응용 변경 여부
+2)History Logging (방안) nosql계열DB (cassandra, mongodb등)(제약/검토사항) Nosql로 변경에따른 응용변경 NoSQLDB의 이중화방안
+3)확장성/가용성(방안) oracle 또는 mariaDB 등의 이중화구성(제약/검토사항) 문제에서Oracle로 명시하고있음 MySQL / MariaDB 적용시 이에따른query 전환비용/일정포함 필요 Oracle 적용시 라이선스 확보/이중화 방안 등 검토필요(Data Guard / OGG 등) 성능에 대한 사전검토필요 (디스크type 및서버type 등)
+
+AWS PaaS(ManagedService)기반구성
+솔루션 선정하여 요구사항 대응방안 마련하고 대응 답안의 제약/검토사항을기술
+1) Select (방안) elasticCache사용(제약/검토사항) 데이터정합성보장방안(Oracle to elasticcache배치구성방안에대한추가검토)elasticCache구성방안(Cluster vs non-cluster mode)cache 구성변경에 따른 응용변경
+elasticCache 제약사항 검토(메모리사이즈별비용등)
+2) History Logging(방안) dynamoDB사용(제약/검토사항) 데이터 성능보장 방안(data skew)
+비정형 데이터 분석방안 검토 필요(ex powerBI같은..) Nosql로 변경에 따른 응용변경 DynamoDB 제약사항 검토 읽기/쓰기 제약 및 비용 인덱스수, 키크기등(AWS 문서참조)
+3)확장성/가용성(방안) RDS (oracle or mariadbor오로라DB)
+(RDSoracle인경우제약/검토사항)
+Oracle RDS의지원사이즈: 최대64TBOracle license에대한확보방안검토필요
+read/write확장/분리는 별도read replica 구성검토(RDSmariadb/오로라DB인경우제약/검토사항) 솔루션 적용으로 인한 응용단 변경 분량 검토필요-> Procedure, Pro*C 등의 OS단에 적용된 스크립트 기반의 업무에대한 적용방안 검토포함
+별도read replica 구성을 통한 확장성 검토
+
+- 점검
+1) 점검 대상 : L4, NAS, DB 스토리지
+2)
+점검 방법 :
+• L4 : 네트워크 대역폭 등의 자원 병목 점검
+• NAS : 이미지 파일 영역의 디스크 처리속 도 , Disk 분산 여부등의 자원 병목 점검
+• DB : SQL Plan 의 특이사항은 발견되지 않는다는 사실에 착안하여 DB 스토리지 처리속도 , Disk 분산 여부등의 자원
+병목 점검
+
+- 원인 분석
+(1) cpu 사용율 측면에서 보면 usr + sys 대비 wio 비율이 매우 높음
+(2) 현재 구성의 pv에서 처리가능한 iops성능 (100iops) 이상의 요청(peak시 1787)이 들어오고 있음
+(3) 디스크 busy측면에서 보면 전체 디스크 대비 특정 디스크의 busy%가 편중 되어 있으며, 50% 이상~ 90% 정도로 매우 IO부하가 심함
+(4) 업무 특성은 DB 데이터를 축적하는 패턴이며 실제로 부하가 심한 pv는 DBMS Data및 index영역임
+-> 현재의 구성에서 처리 가능한 Level 대비 과도한 IO 처리를 요청하고 있어 디스크는 매우 바쁜 상황이며, 이로 인해 cpu는 일을 하고 싶어도 IO를 기다리느라 일을 제대로 처리하지 못하는 상황이라 응답시간이 저하되고 있는것이다
+개선방안:
+- pv02와 mapping된 block device를 Premium Type으로 교체 구성
+- Premium Type으로 교체해도 1000 iops 가 max라서 peak시 iops처리 시 지연 발생 가능하므로 복수 개의 device를 할당하여 Striping하는 것으로 재구성한다
+
+
+LVM (Logical Volume Management)
+* 디스크나 대용량 스토리지 장치를 유연하고 확장 가능하게 다룰수 있는 기술
+전통적인 파티션
+-> 특정 파티션(/home 가정)에 마운트된 파티션이 용량이 찼을 경우
+* 추가 디스크 장착
+* 추가된 디스크에 파티션 생성 및 포맷
+* 새로운 마운트 포인트(/home2)를 만들고 추가한 파티션 마운트
+* 기존 home 데이터를 home2에 복사 또는 이동
+* 기존 home 파티션을 unmount
+* home2를 home으로 마운트
+
+LVM 구조
+-> 파티션대신 볼륨이라는 단위로 저장 장치를 다룸
+-> 물리 디스크를 볼륨 그룹으로 묶고 이것을 논리 볼륨으로 분할하여 관리 -> 스토리지ㅡ이 확장이나 변경시 서비스의 변경을 할 수 있음, 특저 ㅇ영역 사용량이 많아져서 저장 공간이 부족해지거나 할 경우에 유연하게 대응 가능
+-> /home 영역이 거의 찼을 경우 LVM 적용되어 있으면
+* 추가 디스크 장착
+* 추가된 디스크에 파티션을 만들어 물리 볼륨 생성
+* 물리 볼륨을 볼륨 그룹에 추가. home은 vg_data 볼륨 그룹이므로 여기에 추가
+* home이 사용하는 논리 볼륨인 lv_home의 볼륨 사이즈 증가시킴
+>>>>>>> 1a5af08066a0bf3f6343ee5fed03ae1042cdc6d3
